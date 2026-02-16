@@ -10,9 +10,17 @@
 #include "NimBLEBeacon.h"
 #include <Wire.h>
 #include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
+#include <Adafruit_SH1106.h>
 
+// Helper macro to swap endianness of a 16-bit value (used for iBeacon major/minor)
 #define ENDIAN_CHANGE_U16(x) ((((x) & 0xFF00) >> 8) + (((x) & 0xFF) << 8))
+
+// ----------------------- OLED Display -----------------------
+#define SCREEN_WIDTH    128
+#define SCREEN_HEIGHT   64
+#define OLED_ADDR       0x3C
+
+Adafruit_SH1106 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
 // ----------------------- Device Info -----------------------
 const char* DEVNAME = "SWGESCAN";
@@ -36,7 +44,7 @@ const char* strLocation[8] = {"No Beacon","Marketplace","Droid Depot","Resistanc
 #define RSSI           -75                // Minimum RSSI to consider   
 #define BLE_DISNEY     0x0183             // Manufacturer Company ID    
 
-const String IGNOREHOST = "SITH-TLBX";    // Ignore a specific beacon host  
+const String IGNOREHOST = "";    // Ignore a specific beacon host  
 
 // ----------------------- State -----------------------
 uint32_t last_activity;
@@ -71,8 +79,10 @@ class ScanCallbacks : public NimBLEScanCallbacks {
             beacon_name = advertisedDevice->getName().c_str();
             // Serial.println("");
         }
-
-        if (beacon_name == IGNOREHOST) return;
+        
+        if (IGNOREHOST != ""){
+           if (beacon_name == IGNOREHOST) return;
+        }
         if ((millis() - last_activity) < CHANGEDELY) return;
 
         last_activity = millis();
@@ -86,7 +96,11 @@ class ScanCallbacks : public NimBLEScanCallbacks {
         // Serial.print("Company ID: ");
         // Serial.println(company, HEX);
         Serial.print("Location: ");
-        Serial.println(strLocation[area_num]);        
+        Serial.println(strLocation[area_num]);
+        
+        display.print("Location: ");
+        display.println(strLocation[area_num]);
+        display.display();
 
         if (advertisedDevice->haveServiceUUID()) {
             NimBLEUUID devUUID = advertisedDevice->getServiceUUID();
@@ -142,15 +156,29 @@ class ScanCallbacks : public NimBLEScanCallbacks {
 } scanCallbacks;
 
 void setup() {
-    Serial.begin(115200);
-    Serial.println("Scanning...");
+    // Initialize OLED display
+    // 0x3C is default i2c adress in some cases MAY be different
+    display.begin(SSD1306_SWITCHCAPVCC, OLED_ADDR);
+    display.clearDisplay();
+    display.setTextSize(1);
+    display.setTextColor(WHITE);
+    display.setCursor(10, 10);
+    display.println("SWGE Scanner");
+    display.display();
 
+    // Initialize BLE
     NimBLEDevice::init("Beacon-scanner");
     pBLEScan = BLEDevice::getScan();
     pBLEScan->setScanCallbacks(&scanCallbacks);
     pBLEScan->setActiveScan(true);
     pBLEScan->setInterval(100);
     pBLEScan->setWindow(100);
+
+    // Start scanning
+    Serial.begin(115200);
+    display.println("");
+    display.println("Scanning...");
+    display.display();
 }
 
 void loop() {
