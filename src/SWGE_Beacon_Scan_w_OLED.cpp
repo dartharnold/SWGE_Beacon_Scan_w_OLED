@@ -9,7 +9,7 @@
 #include "NimBLEEddystoneTLM.h"
 #include "NimBLEBeacon.h"
 #include <Wire.h>
-#incldue <Adafruit_GFX.h>
+#include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
 #define ENDIAN_CHANGE_U16(x) ((((x) & 0xFF00) >> 8) + (((x) & 0xFF) << 8))
