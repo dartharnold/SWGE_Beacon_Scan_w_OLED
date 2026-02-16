@@ -19,8 +19,9 @@
 #define SCREEN_WIDTH    128
 #define SCREEN_HEIGHT   64
 #define OLED_ADDR       0x3C
+#define OLED_RESET      4
 
-Adafruit_SH1106 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
+Adafruit_SH1106 display(OLED_RESET);
 
 // ----------------------- Device Info -----------------------
 const char* DEVNAME = "SWGESCAN";
@@ -158,9 +159,9 @@ class ScanCallbacks : public NimBLEScanCallbacks {
 void setup() {
     // Initialize OLED display
     // 0x3C is default i2c adress in some cases MAY be different
-    display.begin(SSD1306_SWITCHCAPVCC, OLED_ADDR);
+    display.begin(SH1106_SWITCHCAPVCC, OLED_ADDR);
     display.clearDisplay();
-    display.setTextSize(1);
+    display.setTextSize(2);
     display.setTextColor(WHITE);
     display.setCursor(10, 10);
     display.println("SWGE Scanner");
