@@ -36,7 +36,7 @@ const char* strLocation[8] = {"No Beacon","Marketplace","Droid Depot","Resistanc
 #define RSSI           -75                // Minimum RSSI to consider   
 #define BLE_DISNEY     0x0183             // Manufacturer Company ID    
 
-const String IGNOREHOST = "SITH-TLBX";    // Ignore a specific beacon host  
+const String IGNOREHOST = "";    // Ignore a specific beacon host  
 
 // ----------------------- State -----------------------
 uint32_t last_activity;
@@ -71,8 +71,9 @@ class ScanCallbacks : public NimBLEScanCallbacks {
             beacon_name = advertisedDevice->getName().c_str();
             // Serial.println("");
         }
-
-        if (beacon_name == IGNOREHOST) return;
+        if (IGNOREHOST != "") {
+            if (beacon_name == IGNOREHOST) return;
+        }
         if ((millis() - last_activity) < CHANGEDELY) return;
 
         last_activity = millis();
@@ -155,9 +156,6 @@ void setup() {
 
 void loop() {
     NimBLEScanResults foundDevices = pBLEScan->getResults(scanTime, false);
-    // Serial.print("Devices found: ");
-    // Serial.println(foundDevices.getCount());
-    // Serial.println("Scan done!");
     pBLEScan->clearResults(); // delete results scan buffer to release memory
     delay(2000);
 }
